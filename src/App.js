@@ -1,23 +1,40 @@
-import React from 'react';
-import logo from './logo.svg';
+import React,  { useState } from 'react';
 import './App.css';
+import Event from './Components/Event'
 
 function App() {
+
+  const [loading, setLoading] = useState(false);
+  const [events, setEvents] = useState([]);
+
+  async function onSubmit(event) {
+      event.preventDefault();
+      setLoading(true);
+      const username = event.target.elements[0].value;
+      const response = await fetch(`https://api.github.com/users/${username}/events`);
+      const json = await response.json();
+      setLoading(false);
+      const events = json.filter((githubEvent) => Object.values(Event.EVENT_TYPES).indexOf(githubEvent.type) > -1)
+      setEvents(events)
+  }
+
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
+        <h1>Github snippets</h1>
+        <p>Enter a github username to see their public activity</p>
+        <form onSubmit={onSubmit}>
+          <label>
+            <span>Github username</span>
+          <input type={"text"} name={"username"}/>
+          </label>
+          <button>{loading ? '...': 'Submit'}</button>
+        </form>
+        <ul>
+          { events.map((event) => (<li key={event.id}>
+            <Event event={event} />
+          </li>))}
+          </ul>
       </header>
     </div>
   );
